@@ -33,7 +33,7 @@ class _SignInScreen extends State<SignInScreen> {
                       gradient: LinearGradient(
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
-                          colors: [Color(0xFFF9771C), Color(0xFFFDB872)]
+                          colors: [Color(0xFF4263FB), Color(0xFFB5C8FF)]
                       ),
                       borderRadius: BorderRadius.only(
                         bottomRight: Radius.circular(100),
@@ -62,7 +62,7 @@ class _SignInScreen extends State<SignInScreen> {
                             height: 12,
                           ),
                           Text(
-                            "Chào mừng trở lại Ứng dụng",
+                            "Chào mừng trở lại Quản lý chi tiêu",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 15,
@@ -104,7 +104,7 @@ class _SignInScreen extends State<SignInScreen> {
                               context.go('/home');
                             },
                             style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFFF9771C),
+                                backgroundColor: const Color(0xFF279BFF),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(15))
                             ),
                             child: const Text (
@@ -124,7 +124,7 @@ class _SignInScreen extends State<SignInScreen> {
                             child: const Text(
                               "Đăng ký ngay",
                               style: TextStyle(
-                                color: Color(0xFFF9771C),
+                                color: Color(0xFF003098),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
