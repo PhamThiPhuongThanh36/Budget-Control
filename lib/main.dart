@@ -21,11 +21,11 @@ class MyApp extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
           displayMedium: TextStyle(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
           displaySmall: TextStyle(
-            fontSize: 20,
+            fontSize: 16,
           ),
         )
       ),
