@@ -48,7 +48,7 @@ class StatisticsScreen extends StatelessWidget {
                       )
                   ),
                   Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(10),
                       child: Column(
                         children: [
                           _buildSection(
@@ -132,13 +132,13 @@ class StatisticsScreen extends StatelessWidget {
                 height: 12,
                 decoration: BoxDecoration(
                   color: chartColors[index % chartColors.length],
-                  shape: BoxShape.circle, // 👈 đẹp hơn
+                  shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 stats[index].category.name,
-                style: const TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 13),
               ),
             ],
           ),
@@ -146,5 +146,4 @@ class StatisticsScreen extends StatelessWidget {
       }),
     );
   }
-
 }
