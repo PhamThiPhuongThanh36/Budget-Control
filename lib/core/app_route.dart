@@ -1,14 +1,13 @@
 import 'package:go_router/go_router.dart';
-import '../screens/home_screen.dart';
-import '../screens/sign_in_screen.dart';
-import '../screens/statistics_screen.dart';
-import '../screens/categories_screen.dart';
-import 'main_wrapper.dart';
+import '../views/home_screen.dart';
+import '../views/sign_in_screen.dart';
+import '../views/statistics_screen.dart';
+import '../views/categories_screen.dart';
+import '../layout/main_wrapper.dart';
 import 'package:flutter/material.dart';
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
-  static final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
   static final router = GoRouter(
     initialLocation: '/login',
