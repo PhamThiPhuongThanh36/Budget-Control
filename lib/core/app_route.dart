@@ -1,3 +1,4 @@
+import 'package:budget_control/views/transactions_history_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../views/home_screen.dart';
 import '../views/sign_in_screen.dart';
@@ -16,6 +17,11 @@ class AppRouter {
       GoRoute(
         path: '/login',
         builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        path: '/transactions_history',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => TransactionsHistoryScreen()
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
