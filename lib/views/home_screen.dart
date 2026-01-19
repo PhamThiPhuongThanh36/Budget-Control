@@ -30,9 +30,9 @@ class HomeScreen extends StatelessWidget {
       child: Consumer<TransactionsViewModel>(
         builder: (context, txVm, child) {
           return Scaffold(
-            body: SingleChildScrollView(
+            body: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 60),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Column(
                   children: [
                     Row(
@@ -94,7 +94,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           color: const Color(0xFF059669),
                           title: "THU NHẬP",
-                          subtitle: "+ ${txVm.totalIncome.toStringAsFixed(0)}",
+                          subtitle: "+ ${VndFormatter.format(txVm.totalIncome)}",
                         ),
                         CustomCart(
                           icon: SvgPicture.asset(
@@ -103,7 +103,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           color: const Color(0xFFE11E49),
                           title: "CHI TIÊU",
-                          subtitle: "- ${txVm.totalExpense.toStringAsFixed(0)}",
+                          subtitle: "- ${VndFormatter.format(txVm.totalExpense)}",
                         ),
                       ],
                     ),
@@ -127,73 +127,73 @@ class HomeScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    FutureBuilder<List<TransactionWithCategory>>(
-                      future: txVm.getRecentTransactions(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Text('Chưa có giao dịch nào', style: TextStyle(color: Colors.grey)),
-                          );
-                        }
-
-                        final recent = snapshot.data!;
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: recent.length > 5 ? 5 : recent.length,
-                          itemBuilder: (context, index) {
-                            final item = recent[index];
-                            final tx = item.transaction;
-                            final cat = item.category;
-                            final isIncome = tx.amount > 0;
-
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 6),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: isIncome ? Colors.green[100] : Colors.red[100],
-                                  child: Icon(
-                                    isIncome ? Icons.arrow_upward : Icons.arrow_downward,
-                                    color: isIncome ? Colors.green[800] : Colors.red[800],
-                                  ),
-                                ),
-                                title: Text(
-                                  '${tx.amount.toStringAsFixed(0)} VNĐ',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: isIncome ? Colors.green[800] : Colors.red[800],
-                                  ),
-                                ),
-                                subtitle: Text('${cat.name} • ${tx.note ?? 'Không ghi chú'}'),
-                                trailing: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      DateFormat('dd/MM/yyyy').format(tx.createdAt),
-                                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                    ),
-                                    Text(
-                                      DateFormat('HH:mm:ss').format(tx.createdAt),
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey[500],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                    Expanded(
+                      child: FutureBuilder<List<TransactionWithCategory>>(
+                        future: txVm.getRecentTransactions(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text('Chưa có giao dịch nào', style: TextStyle(color: Colors.grey)),
                             );
-                          },
-                        );
-                      },
-                    ),
+                          }
+
+                          final recent = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: recent.length > 10 ? 10 : recent.length,
+                            itemBuilder: (context, index) {
+                              final item = recent[index];
+                              final tx = item.transaction;
+                              final cat = item.category;
+                              final isIncome = cat.type == 'income';
+
+                              return Card(
+                                margin: const EdgeInsets.symmetric(vertical: 6),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: isIncome ? Colors.green[100] : Colors.red[100],
+                                    child: Icon(
+                                      isIncome ? Icons.arrow_upward : Icons.arrow_downward,
+                                      color: isIncome ? Colors.green[800] : Colors.red[800],
+                                    ),
+                                  ),
+                                  title: Text(
+                                    '${VndFormatter.format(tx.amount)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: isIncome ? Colors.green[800] : Colors.red[800],
+                                    ),
+                                  ),
+                                  subtitle: Text('${cat.name} • ${tx.note ?? 'Không ghi chú'}'),
+                                  trailing: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        DateFormat('dd/MM/yyyy').format(tx.createdAt),
+                                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                      ),
+                                      Text(
+                                        DateFormat('HH:mm:ss').format(tx.createdAt),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[500],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -319,7 +319,7 @@ class HomeScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () async {
                         double amount = double.parse(
-                          amountController.text.replaceAll(' ', ''),
+                          amountController.text.replaceAll('.', ''),
                         );
                         if (amount <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -389,7 +389,7 @@ class HomeScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              final newBalance = double.tryParse(controller.text.replaceAll(',', '')) ?? 0.0;
+              final newBalance = double.tryParse(controller.text.replaceAll('.', '')) ?? 0.0;
               txVm.setInitialBalance(newBalance);
               Navigator.pop(context);
             },
