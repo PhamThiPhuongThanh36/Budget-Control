@@ -19,6 +19,7 @@ class MainWrapper extends StatelessWidget {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: BottomNavigationBar(
+
         currentIndex: navigationShell.currentIndex,
         onTap: _goToBranch,
         selectedItemColor: const Color(0xFFF9771C),
