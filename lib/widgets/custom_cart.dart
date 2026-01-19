@@ -48,7 +48,7 @@ class _CustomCartState extends State<CustomCart> {
           SizedBox(height: 8),
           Text(
             widget.subtitle,
-            style: Theme.of(context).textTheme.displayMedium?.copyWith(color: widget.color, fontSize: 16),
+            style: Theme.of(context).textTheme.displayMedium?.copyWith(color: widget.color, fontSize: 15),
           )
         ]
       ),
