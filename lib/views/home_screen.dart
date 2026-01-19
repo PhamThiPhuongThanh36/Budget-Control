@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../database/daos/transaction_dao.dart';
@@ -10,6 +11,7 @@ import '../utils/vnd_formatter.dart';
 import '../view_models/categories_viewmodel.dart';
 import '../view_models/transactions_viewmodel.dart';
 import '../widgets/custom_cart.dart';
+import '../widgets/custom_transaction.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -40,6 +42,7 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
+                            context.go('/login');
                           },
                           child: const CircleAvatar(
                             radius: 20,
@@ -118,10 +121,13 @@ class HomeScreen extends StatelessWidget {
                           "Giao dịch gần đây",
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        Text(
-                          "Xem thêm",
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: const Color(0xFF2B8CEE)),
-                        ),
+                        GestureDetector(
+                          onTap: () => context.push('/transactions_history'),
+                          child: Text(
+                            "Xem tất cả",
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith()
+                          ),
+                        )
                       ],
                     ),
 
@@ -150,44 +156,15 @@ class HomeScreen extends StatelessWidget {
                               final cat = item.category;
                               final isIncome = cat.type == 'income';
 
-                              return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 6),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: isIncome ? Colors.green[100] : Colors.red[100],
-                                    child: Icon(
-                                      isIncome ? Icons.arrow_upward : Icons.arrow_downward,
-                                      color: isIncome ? Colors.green[800] : Colors.red[800],
-                                    ),
-                                  ),
-                                  title: Text(
-                                    '${VndFormatter.format(tx.amount)}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: isIncome ? Colors.green[800] : Colors.red[800],
-                                    ),
-                                  ),
-                                  subtitle: Text('${cat.name} • ${tx.note ?? 'Không ghi chú'}'),
-                                  trailing: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        DateFormat('dd/MM/yyyy').format(tx.createdAt),
-                                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                      ),
-                                      Text(
-                                        DateFormat('HH:mm:ss').format(tx.createdAt),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey[500],
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              return CustomTransaction(
+                                icon: isIncome ? SvgPicture.asset('assets/icons/ic_up.svg') : SvgPicture.asset('assets/icons/ic_down.svg'),
+                                color: isIncome ? Colors.green : Colors.red,
+                                title: VndFormatter.format(tx.amount),
+                                subtitle: tx.note?.isNotEmpty == true
+                                    ? '${cat.name} • ${tx.note}'
+                                    : cat.name,
+                                date: DateFormat('dd/MM/yyyy').format(tx.createdAt),
+                                time: DateFormat('HH:mm').format(tx.createdAt),
                               );
                             },
                           );
@@ -199,10 +176,14 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             floatingActionButton: FloatingActionButton(
+              backgroundColor: const Color(0xFFFFFFFF),
               onPressed: () {
                 _showAddTransactionSheet(context, txVm, Provider.of<CategoriesViewModel>(context, listen: false));
               },
-              child: const Icon(Icons.add), ),
+              child: const Icon(
+                Icons.add,
+              )
+            ),
           );
         },
       ),
@@ -390,7 +371,8 @@ class HomeScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               final newBalance = double.tryParse(controller.text.replaceAll('.', '')) ?? 0.0;
-              txVm.setInitialBalance(newBalance);
+              // txVm.setInitialBalance(newBalance);
+              txVm.addTransaction(null, newBalance, null, null);
               Navigator.pop(context);
             },
             child: const Text('Lưu', style: TextStyle(color: Color(0xFF2B8CEE))),
