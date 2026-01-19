@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 
 import '../database.dart';
+import '../tables/categoris_table.dart';
+import '../tables/transactions.dart';
 part 'transaction_dao.g.dart';
 
 @DriftAccessor(tables: [Transactions, Categories])
