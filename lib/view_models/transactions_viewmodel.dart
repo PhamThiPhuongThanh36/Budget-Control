@@ -22,19 +22,20 @@ class TransactionsViewModel extends ChangeNotifier {
     });
   }
 
-  void setInitialBalance(double value) {
-    initialBalance = value;
-    notifyListeners();
-  }
-
-  Future<void> addTransaction(int categoryId, double amount, String? note, String type) async {
-    final adjustedAmount = type == 'income' ? amount : -amount;
-    await _repo.addTransaction(categoryId, adjustedAmount, note);
+  Future<void> addTransaction(int? categoryId, double amount, String? note, String? type) async {
+    final adjustedAmount = type == 'expense' ? -amount : amount;
+    await _repo.addTransaction(categoryId ?? 0, adjustedAmount, note);
   }
 
   Future<List<TransactionWithCategory>> getRecentTransactions() async {
     final all = await _repo.getAllTransactions();
     all.sort((a, b) => b.transaction.createdAt.compareTo(a.transaction.createdAt));
     return all.take(10).toList();
+  }
+
+  Future<List<TransactionWithCategory>> getAllTransactions() async {
+    final all = await _repo.getAllTransactions();
+    all.sort((a, b) => b.transaction.createdAt.compareTo(a.transaction.createdAt));
+    return all;
   }
 }
