@@ -34,7 +34,7 @@ class HomeScreen extends StatelessWidget {
           return Scaffold(
             body: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
                 child: Column(
                   children: [
                     Row(
@@ -60,7 +60,11 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 48),
 
                     GestureDetector(
-                      onTap: () => _showEditInitialBalanceDialog(context, txVm),
+                      onTap: () {
+                        if (txVm.hasTransactions == false) {
+                          _showEditInitialBalanceDialog(context, txVm);
+                        }
+                      },
                       child: Column(
                         children: [
                           Text(
