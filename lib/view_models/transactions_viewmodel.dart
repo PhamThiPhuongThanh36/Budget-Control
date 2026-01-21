@@ -43,9 +43,19 @@ class TransactionsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addTransaction(int? categoryId, double amount, String? note, String? type) async {
-    final adjustedAmount = type == 'expense' ? -amount : amount;
-    await _repo.addTransaction(categoryId ?? 0, adjustedAmount, note);
+  Future<void> addTransaction(
+      int? categoryId,
+      double amount,
+      String? note,
+      String? type,
+      ) async {
+    final adjustedAmount = amount;
+
+    await _repo.addTransaction(
+      categoryId ?? 0,
+      adjustedAmount,
+      note,
+    );
     await loadTransactions();
   }
 
