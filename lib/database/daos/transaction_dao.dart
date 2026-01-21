@@ -61,7 +61,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
     return query.map((row) => row.read(sumAmount) ?? 0.0).watchSingle();
   }
 
-  Future<List<CategoryAmount>> statsByPeriod({
+  Stream<List<CategoryAmount>> statsByPeriod({
     required String type,
     required DateTime start,
     required DateTime end,
@@ -69,8 +69,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
     final sumAmount = transactions.amount.sum();
 
     final query = select(categories).join([
-      innerJoin(transactions,
-          transactions.categoryId.equalsExp(categories.id)),
+      innerJoin(transactions, transactions.categoryId.equalsExp(categories.id)),
     ])
       ..where(categories.type.equals(type))
       ..where(_betweenDate(transactions.createdAt, start, end))
@@ -82,7 +81,35 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
         category: row.readTable(categories),
         totalAmount: (row.read(sumAmount) ?? 0).abs(),
       );
-    }).get();
+    }).watch();
+  }
+
+  Stream<double> totalIncome() {
+    final query = customSelect(
+      '''
+      SELECT COALESCE(SUM(t.amount), 0) AS total
+      FROM transactions t
+      JOIN categories c ON c.id = t.category_id
+      WHERE c.type = 'income'
+      ''',
+      readsFrom: {transactions, categories},
+    );
+
+    return query.watch().map((row) => row.first.read<double>('total'));
+  }
+
+  Stream<double> totalExpense() {
+    final query = customSelect(
+      '''
+      SELECT COALESCE(SUM(t.amount), 0) AS total
+      FROM transactions t
+      JOIN categories c ON c.id = t.category_id
+      WHERE c.type = 'expense'
+      ''',
+      readsFrom: {transactions, categories},
+    );
+
+    return query.watch().map((row) => row.first.read<double>('total'));
   }
 }
 

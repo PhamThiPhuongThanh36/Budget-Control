@@ -9,6 +9,9 @@
 
     DatabaseRepository(this._db);
 
+    Stream<double> totalIncome() => _db.transactionDao.totalIncome();
+    Stream<double> totalExpense() => _db.transactionDao.totalExpense();
+
     Future<List<Category>> getAllCategories() => _db.categoryDao.getAllCategories();
 
     Future<List<Category>> getCategoriesByType(String type) => _db.categoryDao.getCategoriesByType(type);
@@ -26,22 +29,23 @@
     Future<List<TransactionWithCategory>> getTransactionsByCategory(int categoryId) =>
         _db.transactionDao.getTransactionsByCategory(categoryId);
 
-    Future<int> addTransaction(int categoryId, double amount, String? note) {
-      return _db.transactionDao.insertTransaction(TransactionsCompanion(
-        categoryId: Value(categoryId),
-        amount: Value(amount),
-        note: Value(note),
-        createdAt: Value(DateTime.now()),
-      ));
+    Future<int> addTransaction(
+        int categoryId,
+        double amount,
+        String? note, {
+          DateTime? createdAt,
+        }) {
+      return _db.transactionDao.insertTransaction(
+        TransactionsCompanion(
+          categoryId: Value(categoryId),
+          amount: Value(amount),
+          note: Value(note),
+          createdAt: Value(createdAt ?? DateTime.now()),
+        ),
+      );
     }
 
-    Stream<double> totalIncome() =>
-        _db.transactionDao.totalByType('income');
-
-    Stream<double> totalExpense() =>
-        _db.transactionDao.totalByType('expense');
-
-    Future<List<CategoryAmount>> statistics({
+    Stream<List<CategoryAmount>> statistics({
       required StatisticsPeriod period,
       required String type,
       required DateTime reference,

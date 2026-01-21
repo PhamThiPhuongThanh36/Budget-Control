@@ -1,13 +1,10 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../database/daos/transaction_dao.dart';
 import '../models/statistics_period.dart';
 import '../repository/database_repository.dart';
-
-
-import 'package:intl/intl.dart';
 
 class StatisticsViewModel extends ChangeNotifier {
   final DatabaseRepository _repo;
@@ -21,77 +18,89 @@ class StatisticsViewModel extends ChangeNotifier {
   double totalIncome = 0.0;
   double totalExpense = 0.0;
 
-  double previousTotalExpense = 0.0;
   double previousTotalIncome = 0.0;
+  double previousTotalExpense = 0.0;
+
+  StreamSubscription<List<CategoryAmount>>? _incomeSub;
+  StreamSubscription<List<CategoryAmount>>? _expenseSub;
 
   StatisticsViewModel(this._repo) {
-    load();
+    _setupStreams();
   }
 
-  Future<void> load() async {
-    final (start, end) = _getPeriodRange(current);
+  void _setupStreams() {
+    _incomeSub?.cancel();
+    _expenseSub?.cancel();
 
-    final (prevStart, prevEnd) = _getPeriodRange(_getPreviousReference(current));
+    _incomeSub = _repo
+        .statistics(period: period, type: 'income', reference: current)
+        .listen((data) {
+      income = data;
+      totalIncome = _sum(data);
+      notifyListeners();
+    });
 
-    final currentExpense = await _repo.statistics(
-      period: period,
-      type: 'expense',
-      reference: current,
-    );
-    final currentIncome = await _repo.statistics(
-      period: period,
-      type: 'income',
-      reference: current,
-    );
+    _expenseSub = _repo
+        .statistics(period: period, type: 'expense', reference: current)
+        .listen((data) {
+      expense = data;
+      totalExpense = _sum(data);
+      notifyListeners();
+    });
 
-    final prevExpense = await _repo.statistics(
-      period: period,
-      type: 'expense',
-      reference: _getPreviousReference(current),
-    );
-    final prevIncome = await _repo.statistics(
-      period: period,
-      type: 'income',
-      reference: _getPreviousReference(current),
-    );
+    _loadPreviousTotals();
+  }
 
-    totalExpense = currentExpense.fold(0.0, (sum, ca) => sum + ca.totalAmount);
-    totalIncome = currentIncome.fold(0.0, (sum, ca) => sum + ca.totalAmount);
+  double _sum(List<CategoryAmount> list) {
+    return list.fold(0.0, (sum, e) => sum + e.totalAmount);
+  }
 
-    previousTotalExpense = prevExpense.fold(0.0, (sum, ca) => sum + ca.totalAmount);
-    previousTotalIncome = prevIncome.fold(0.0, (sum, ca) => sum + ca.totalAmount);
+  Future<void> _loadPreviousTotals() async {
+    final prevRef = _getPreviousReference(current);
 
-    expense = currentExpense;
-    income = currentIncome;
+    final prevIncomeList = await _repo
+        .statistics(period: period, type: 'income', reference: prevRef)
+        .first;
+
+    final prevExpenseList = await _repo
+        .statistics(period: period, type: 'expense', reference: prevRef)
+        .first;
+
+    previousTotalIncome = _sum(prevIncomeList);
+    previousTotalExpense = _sum(prevExpenseList);
 
     notifyListeners();
   }
 
   void changePeriod(StatisticsPeriod value) {
-    if (period != value) {
-      period = value;
-      current = DateTime.now();
-      load();
-    }
+    if (period == value) return;
+    period = value;
+    current = DateTime.now();
+    _setupStreams();
   }
-
 
   void previous() {
     current = _getPreviousReference(current);
-    load();
+    _setupStreams();
   }
 
   void next() {
     current = _getNextReference(current);
-    load();
+    _setupStreams();
   }
 
+  @override
+  void dispose() {
+    _incomeSub?.cancel();
+    _expenseSub?.cancel();
+    super.dispose();
+  }
 
-  (DateTime start, DateTime end) _getPeriodRange(DateTime ref) {
+  (DateTime, DateTime) _getPeriodRange(DateTime ref) {
     switch (period) {
       case StatisticsPeriod.week:
-        final start = ref.subtract(Duration(days: ref.weekday - 1));
-        return (start, start.add(const Duration(days: 7)));
+        final monday = ref.subtract(Duration(days: ref.weekday - 1));
+        return (monday, monday.add(const Duration(days: 7)));
       case StatisticsPeriod.month:
         return (DateTime(ref.year, ref.month), DateTime(ref.year, ref.month + 1));
       case StatisticsPeriod.year:
@@ -104,9 +113,9 @@ class StatisticsViewModel extends ChangeNotifier {
       case StatisticsPeriod.week:
         return ref.subtract(const Duration(days: 7));
       case StatisticsPeriod.month:
-        return DateTime(ref.year, ref.month - 1);
+        return DateTime(ref.year, ref.month - 1, 15);
       case StatisticsPeriod.year:
-        return DateTime(ref.year - 1);
+        return DateTime(ref.year - 1, 6, 15);
     }
   }
 
@@ -115,37 +124,31 @@ class StatisticsViewModel extends ChangeNotifier {
       case StatisticsPeriod.week:
         return ref.add(const Duration(days: 7));
       case StatisticsPeriod.month:
-        return DateTime(ref.year, ref.month + 1);
+        return DateTime(ref.year, ref.month + 1, 15);
       case StatisticsPeriod.year:
-        return DateTime(ref.year + 1);
+        return DateTime(ref.year + 1, 6, 15);
     }
   }
 
   String get title {
-    final f = DateFormat('MMMM yyyy', 'vi');
     switch (period) {
       case StatisticsPeriod.week:
-        final start = _getPeriodRange(current).$1;
-        final end = _getPeriodRange(current).$2.subtract(const Duration(days: 1));
-        return '${DateFormat('dd/MM').format(start)} - ${DateFormat('dd/MM/yyyy').format(end)}';
+        final (s, e) = _getPeriodRange(current);
+        return '${DateFormat('dd/MM').format(s)} - ${DateFormat('dd/MM/yyyy').format(e.subtract(const Duration(days: 1)))}';
       case StatisticsPeriod.month:
-        return f.format(current);
+        return DateFormat('MMMM yyyy', 'vi').format(current);
       case StatisticsPeriod.year:
         return '${current.year}';
     }
   }
 
-  String get expenseChangeText {
-    if (previousTotalExpense == 0) return 'No change';
-    final percent = ((totalExpense - previousTotalExpense) / previousTotalExpense) * 100;
-    final sign = percent >= 0 ? '+' : '';
-    return '$sign${percent.toStringAsFixed(0)}% vs kỳ trước';
-  }
+  String get expenseChangeText => _changeText(totalExpense, previousTotalExpense);
+  String get incomeChangeText => _changeText(totalIncome, previousTotalIncome);
 
-  String get incomeChangeText {
-    if (previousTotalIncome == 0) return 'No change';
-    final percent = ((totalIncome - previousTotalIncome) / previousTotalIncome) * 100;
+  String _changeText(double current, double previous) {
+    if (previous == 0) return 'Không có so sánh';
+    final percent = ((current - previous) / previous) * 100;
     final sign = percent >= 0 ? '+' : '';
-    return '$sign${percent.toStringAsFixed(0)}% vs kỳ trước';
+    return '$sign${percent.toStringAsFixed(0)}% so với kỳ trước';
   }
 }
