@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../database/database.dart';
 import '../repository/database_repository.dart';
 import '../utils/vnd_formatter.dart';
 import '../view_models/categories_viewmodel.dart';
@@ -23,7 +22,7 @@ class CategoriesScreen extends StatelessWidget {
           return Scaffold(
             body: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.only(right: 16, left: 16, top: 20),
                 child: Column(
                   children: [
                     SizedBox(
