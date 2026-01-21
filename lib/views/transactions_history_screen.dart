@@ -58,37 +58,34 @@ class TransactionsHistoryScreen extends StatelessWidget{
                   ),
                 ),
                 Expanded(
-                  child: FutureBuilder(
-                      future: txVm.getAllTransactions(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                        return ListView.builder(
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            final item = snapshot.data![index];
-                            final tx = item.transaction;
-                            final cat = item.category;
-                            final isIncome = cat.type == 'income';
-
-                            return CustomTransaction(
-                              icon: isIncome ? SvgPicture.asset('assets/icons/ic_up.svg') : SvgPicture.asset('assets/icons/ic_down.svg'),
-                              color: isIncome ? Colors.green : Colors.red,
-                              title: VndFormatter.format(tx.amount),
-                              subtitle: tx.note?.isNotEmpty == true
-                                  ? '${cat.name} • ${tx.note}'
-                                  : cat.name,
-                              date: DateFormat('dd/MM/yyyy').format(tx.createdAt),
-                              time: DateFormat('HH:mm').format(tx.createdAt),
-                            );
-                          }
-                        );
-                      }
+                  child: txVm.transactions.isEmpty
+                      ? const Center(
+                    child: Text('Chưa có giao dịch nào'),
                   )
+                      : ListView.builder(
+                    itemCount: txVm.transactions.length,
+                    itemBuilder: (context, index) {
+                      final item = txVm.transactions[index];
+                      final tx = item.transaction;
+                      final cat = item.category;
+                      final isIncome = cat.type == 'income';
+
+                      return CustomTransaction(
+                        icon: isIncome
+                            ? SvgPicture.asset('assets/icons/ic_up.svg')
+                            : SvgPicture.asset('assets/icons/ic_down.svg'),
+                        color: isIncome ? Colors.green : Colors.red,
+                        title: VndFormatter.format(tx.amount),
+                        subtitle: tx.note?.isNotEmpty == true
+                            ? '${cat.name} • ${tx.note}'
+                            : cat.name,
+                        date: DateFormat('dd/MM/yyyy').format(tx.createdAt),
+                        time: DateFormat('HH:mm').format(tx.createdAt),
+                      );
+                    },
+                  ),
                 )
+
               ],
             ),
           )
