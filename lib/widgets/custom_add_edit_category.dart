@@ -7,14 +7,11 @@ import '../view_models/categories_viewmodel.dart';
 
 void showCategoryDialog(
     BuildContext context,
-    CategoriesViewModel vm, {
-      Category? category,
-    }) {
+    CategoriesViewModel vm,
+    {Category? category} ) {
   final isEdit = category != null;
-  final nameController =
-  TextEditingController(text: isEdit ? category!.name : '');
-  int selectedIndex =
-  isEdit ? (category!.type == 'income' ? 0 : 1) : 0;
+  final nameController = TextEditingController(text: isEdit ? category.name : '');
+  int selectedIndex = isEdit ? (category.type == 'income' ? 0 : 1) : 0;
 
   showDialog(
     barrierDismissible: false,
@@ -58,7 +55,6 @@ void showCategoryDialog(
                 ),
               ),
 
-              // ===== BODY =====
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
