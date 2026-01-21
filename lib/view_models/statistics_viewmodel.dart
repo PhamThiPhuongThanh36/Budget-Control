@@ -33,20 +33,22 @@ class StatisticsViewModel extends ChangeNotifier {
     _expenseSub?.cancel();
 
     _incomeSub = _repo
-        .statistics(period: period, type: 'income', reference: current)
-        .listen((data) {
-      income = data;
-      totalIncome = _sum(data);
-      notifyListeners();
-    });
+      .statistics(period: period, type: 'income', reference: current)
+      .listen((data) {
+        income = data;
+        totalIncome = _sum(data);
+        notifyListeners();
+      }
+    );
 
     _expenseSub = _repo
-        .statistics(period: period, type: 'expense', reference: current)
-        .listen((data) {
-      expense = data;
-      totalExpense = _sum(data);
-      notifyListeners();
-    });
+      .statistics(period: period, type: 'expense', reference: current)
+      .listen((data) {
+        expense = data;
+        totalExpense = _sum(data);
+        notifyListeners();
+      }
+    );
 
     _loadPreviousTotals();
   }
