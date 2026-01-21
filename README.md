@@ -1,4 +1,4 @@
-# 💰 Budget Control App - Quản lý tài chính cá nhân
+# Budget Control App - Quản lý tài chính cá nhân
 
 Ứng dụng giúp bạn quản lý thu chi hàng ngày một cách đơn giản, trực quan và hiệu quả. Được xây dựng bằng Flutter với kiến trúc MVVM và database Drift (SQLite).
 
@@ -8,7 +8,6 @@
 | Màn hình đăng nhập |
 | :---: |
 | <img src="https://github.com/user-attachments/assets/6e19fdf1-03f1-4c90-8cff-036ebe5c5628" width="280"> |
-| *Giao diện đăng nhập tối giản* |
 
 ---
 
