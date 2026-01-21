@@ -6,20 +6,20 @@ import '../tables/transactions.dart';
 part 'transaction_dao.g.dart';
 
 @DriftAccessor(tables: [Transactions, Categories])
-class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDaoMixin {
+class TransactionDao extends DatabaseAccessor<AppDatabase>
+    with _$TransactionDaoMixin {
   TransactionDao(AppDatabase db) : super(db);
 
-  Future<List<TransactionWithCategory>> getAllTransactions() {
-    final query = select(transactions).join([
-      innerJoin(categories, categories.id.equalsExp(transactions.categoryId)),
-    ]);
-    return query.map((row) => TransactionWithCategory(
-      transaction: row.readTable(transactions),
-      category: row.readTable(categories),
-    )).get();
+  Expression<bool> _betweenDate(
+      DateTimeColumn column,
+      DateTime start,
+      DateTime end,
+      ) {
+    return column.isBiggerOrEqualValue(start) &
+    column.isSmallerThanValue(end);
   }
 
-  Future<List<TransactionWithCategory>> getTransactionsByCategory(int categoryId) {
+    Future<List<TransactionWithCategory>> getTransactionsByCategory(int categoryId) {
     final query = select(transactions).join([
       innerJoin(categories, categories.id.equalsExp(transactions.categoryId)),
     ])
@@ -30,49 +30,59 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
     )).get();
   }
 
+  Future<List<TransactionWithCategory>> getAllTransactions() {
+    final query = select(transactions).join([
+      innerJoin(categories, categories.id.equalsExp(transactions.categoryId)),
+    ]);
+
+    return query.map((row) {
+      return TransactionWithCategory(
+        transaction: row.readTable(transactions),
+        category: row.readTable(categories),
+      );
+    }).get();
+  }
+
   Future<int> insertTransaction(TransactionsCompanion transaction) {
     return into(transactions).insert(transaction);
   }
 
-  Stream<double> getTotalIncome() {
-    final sum = transactions.amount.sum();
+  Stream<double> totalByType(String type) {
+    final sumAmount = transactions.amount.sum();
+
     final query = selectOnly(transactions)
-      ..addColumns([sum])
-      ..join([innerJoin(categories, categories.id.equalsExp(transactions.categoryId))])
-      ..where(categories.type.equals('income'));
-    return query.map((row) => row.read(sum) ?? 0.0).watchSingle();
+      ..addColumns([sumAmount])
+      ..join([
+        innerJoin(categories,
+            categories.id.equalsExp(transactions.categoryId)),
+      ])
+      ..where(categories.type.equals(type));
+
+    return query.map((row) => row.read(sumAmount) ?? 0.0).watchSingle();
   }
 
-  Stream<double> getTotalExpense() {
-    final sum = transactions.amount.sum();
-    final query = selectOnly(transactions)
-      ..addColumns([sum])
-      ..join([innerJoin(categories, categories.id.equalsExp(transactions.categoryId))])
-      ..where(categories.type.equals('expense'));
-    return query.map((row) => row.read(sum) ?? 0.0).watchSingle();
-  }
+  Future<List<CategoryAmount>> statsByPeriod({
+    required String type, // income | expense
+    required DateTime start,
+    required DateTime end,
+  }) {
+    final sumAmount = transactions.amount.sum();
 
-  Stream<List<CategoryAmount>> getIncomeStats() {
-    return _getStatsByType('income');
-  }
-
-  Stream<List<CategoryAmount>> getExpenseStats() {
-    return _getStatsByType('expense');
-  }
-
-  Stream<List<CategoryAmount>> _getStatsByType(String type) {
-    final amountSum = transactions.amount.sum();
     final query = select(categories).join([
-      innerJoin(transactions, transactions.categoryId.equalsExp(categories.id)),
+      innerJoin(transactions,
+          transactions.categoryId.equalsExp(categories.id)),
     ])
       ..where(categories.type.equals(type))
+      ..where(_betweenDate(transactions.createdAt, start, end))
       ..groupBy([categories.id])
-      ..addColumns([amountSum]);
+      ..addColumns([sumAmount]);
+
     return query.map((row) {
-      final category = row.readTable(categories);
-      final sum = row.read(amountSum) ?? 0.0;
-      return CategoryAmount(category: category, totalAmount: sum);
-    }).watch();
+      return CategoryAmount(
+        category: row.readTable(categories),
+        totalAmount: (row.read(sumAmount) ?? 0).abs(),
+      );
+    }).get();
   }
 }
 
@@ -87,5 +97,9 @@ class CategoryAmount {
   final Category category;
   final double totalAmount;
 
-  CategoryAmount({required this.category, required this.totalAmount});
+  const CategoryAmount({
+    required this.category,
+    required this.totalAmount,
+  });
 }
+
