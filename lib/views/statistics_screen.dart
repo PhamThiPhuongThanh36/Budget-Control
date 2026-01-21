@@ -44,7 +44,7 @@ class StatisticsScreen extends StatelessWidget {
               ),
               centerTitle: true,
             ),
-            body: SingleChildScrollView(
+            body: Padding(
               padding: const EdgeInsets.only(bottom: 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,13 +56,16 @@ class StatisticsScreen extends StatelessWidget {
                       children: [
                         _buildTab('Tuần',
                             vm.period == StatisticsPeriod.week,
-                                () => vm.changePeriod(StatisticsPeriod.week)),
+                                () => vm.changePeriod(StatisticsPeriod.week)
+                        ),
                         _buildTab('Tháng',
                             vm.period == StatisticsPeriod.month,
-                                () => vm.changePeriod(StatisticsPeriod.month)),
+                                () => vm.changePeriod(StatisticsPeriod.month)
+                        ),
                         _buildTab('Năm',
                             vm.period == StatisticsPeriod.year,
-                                () => vm.changePeriod(StatisticsPeriod.year)),
+                                () => vm.changePeriod(StatisticsPeriod.year)
+                        ),
                       ],
                     ),
                   ),
@@ -139,79 +142,59 @@ class StatisticsScreen extends StatelessWidget {
                     ),
 
                   const SizedBox(height: 45),
-
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Danh mục',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        ...vm.expense.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final ca = entry.value;
-                          final percent = vm.totalExpense == 0
-                              ? 0
-                              : (ca.totalAmount / vm.totalExpense * 100);
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: _colorAt(index),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.category,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        ca.category.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${percent.toStringAsFixed(0)}% tổng chi',
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  VndFormatter.format(ca.totalAmount),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ],
+                    padding: EdgeInsets.only(left: 16, bottom: 12),
+                    child: const Text(
+                      'Danh mục',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: vm.expense.length,
+                      itemBuilder: (context, index) {
+                        final ca = vm.expense[index];
+                        final percent = vm.totalExpense == 0 ? 0 : (ca.totalAmount / vm.totalExpense * 100);
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: _colorAt(index),
+                                  borderRadius: BorderRadius.circular(12)
+                                ),
+                                child: const Icon(Icons.category, color: Colors.white),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(ca.category.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                    Text(
+                                      '${percent.toStringAsFixed(0)}% tổng chi',
+                                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                VndFormatter.format(ca.totalAmount),
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  )
                 ],
               ),
             ),
@@ -221,7 +204,6 @@ class StatisticsScreen extends StatelessWidget {
     );
   }
 
-  // ───────── Tab button ─────────
   Widget _buildTab(String label, bool active, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -242,13 +224,8 @@ class StatisticsScreen extends StatelessWidget {
     );
   }
 
-  List<PieChartSectionData> _buildPieSections(
-      List<CategoryAmount> data,
-      ) {
-    final total = data.fold<double>(
-      0,
-          (sum, e) => sum + e.totalAmount,
-    );
+  List<PieChartSectionData> _buildPieSections(List<CategoryAmount> data) {
+    final total = data.fold<double>(0, (sum, e) => sum + e.totalAmount);
 
     return List.generate(data.length, (i) {
       final item = data[i];
