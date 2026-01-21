@@ -19,7 +19,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
     column.isSmallerThanValue(end);
   }
 
-    Future<List<TransactionWithCategory>> getTransactionsByCategory(int categoryId) {
+  Future<List<TransactionWithCategory>> getTransactionsByCategory(int categoryId) {
     final query = select(transactions).join([
       innerJoin(categories, categories.id.equalsExp(transactions.categoryId)),
     ])
