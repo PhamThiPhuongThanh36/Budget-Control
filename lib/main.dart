@@ -4,12 +4,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'core/app_route.dart';
 import 'database/database.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting();
+
   runApp(
-    Provider(
+    Provider<DatabaseRepository>(
       create: (_) => DatabaseRepository(AppDatabase()),
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
