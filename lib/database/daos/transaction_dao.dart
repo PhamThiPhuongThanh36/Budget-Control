@@ -62,7 +62,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<CategoryAmount>> statsByPeriod({
-    required String type, // income | expense
+    required String type,
     required DateTime start,
     required DateTime end,
   }) {
